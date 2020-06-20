@@ -1,0 +1,248 @@
+#include <ArduinoJson.h>
+#include <SPI.h>
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include "SPIFFS.h"
+#include <ETH.h>
+
+#define ETH_ADDR        1
+#define ETH_POWER_PIN   5
+#define ETH_MDC_PIN     23
+#define ETH_MDIO_PIN    18
+#define ETH_TYPE        ETH_PHY_IP101
+
+//**********check for connection*************//
+static bool eth_connected = false;
+
+//*********SSID and Pass for AP**************//
+const char* ssid = "ever01";
+const char* password = "12345";
+
+const char* PARAM_MESSAGE = "ipv4static";
+char h[15];
+
+String led_State;
+String info;
+
+String stIp = "000.000.000.000" ;
+
+//*********static ip config**************//
+IPAddress local_ip(192, 168, 0, 41);
+IPAddress gateway(192, 168, 0, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress dns(210, 94, 0, 73);
+
+//*********sever port**************//
+AsyncWebServer server(80);
+
+boolean g_change_ip = false;
+
+void WiFiEvent(WiFiEvent_t event)
+{
+  switch (event) {
+    case SYSTEM_EVENT_ETH_START:
+      Serial.println("ETH Started");
+      //set eth hostname here
+      ETH.setHostname("esp32-ethernet");
+      break;
+    case SYSTEM_EVENT_ETH_CONNECTED:
+      Serial.println("ETH Connected");
+      break; 
+    case SYSTEM_EVENT_ETH_GOT_IP:
+      Serial.print("ETH MAC: ");
+      Serial.print(ETH.macAddress());
+      Serial.print(", IPv4: ");
+      Serial.print(ETH.localIP());
+      Serial.print("서브넷:");
+      Serial.print(ETH.subnetMask());
+      Serial.print("게이브웨이:");
+      Serial.print(ETH.gatewayIP());
+      if (ETH.fullDuplex()) {
+        Serial.print(", FULL_DUPLEX");
+      }
+      Serial.print(", ");
+      Serial.print(ETH.linkSpeed());
+      Serial.println("Mbps");
+      eth_connected = true;
+      break;
+    case SYSTEM_EVENT_ETH_DISCONNECTED:
+      Serial.println("ETH Disconnected");
+      eth_connected = false;
+      break;
+    case SYSTEM_EVENT_ETH_STOP:
+      Serial.println("ETH Stopped");
+      eth_connected = false;
+      break;
+    default:
+      break;
+  }}
+
+String processor(const String& var){
+    Serial.println(var);
+    IPAddress local  = ETH.localIP(); 
+    Serial.print(F("IP Address: ")); 
+    stIp = toStringIp(local); 
+    Serial.println(stIp);
+
+    led_State = stIp;
+    
+    Serial.println(led_State);
+   
+    return led_State;  
+  
+   return String();        
+}
+
+String toStringIp( IPAddress local ) { // 32비트 ip 주소를 스트링으로 변환하는 함수 
+  String res = ""; 
+  for (int i = 0; i < 3; i++) 
+  { res += String((local >> (8 * i)) & 0xFF) + "."; }
+  res += String(((local >> 8 * 3)) & 0xFF); 
+  
+  return res; 
+  }
+
+void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) {
+    for (int i = 0; i < maxBytes; i++) {
+        bytes[i] = strtoul(str, NULL, base);  // Convert byte
+        str = strchr(str, sep);               // Find next separator
+        if (str == NULL || *str == '\0') {
+            break;                            // No more separators, exit
+        }
+        str++;                                // Point to next character after separator
+    }
+}
+
+void staticAPConfig(String IPStatic){
+uint8_t ip0,ip1,ip2,ip3;
+byte ip[4];
+//server.end();
+ parseBytes(IPStatic.c_str(),'.', ip, 4, 10);
+      ip0 = (uint8_t)ip[0];
+      ip1 = (uint8_t)ip[1];
+      ip2 = (uint8_t)ip[2];
+      ip3 = (uint8_t)ip[3];      
+IPAddress local_ip2(ip0,ip1,ip2,ip3);
+
+  Serial.println("before");
+  Serial.println(local_ip2);
+
+  local_ip= local_ip2;
+  
+  Serial.println("after");
+  Serial.println(local_ip);
+  
+ // ETH.config(local_ip2, gateway, subnet, dns);
+ 
+ // Serial.println(ETH.config(local_ip2, gateway, subnet, dns));
+ // delay(500);
+  
+//ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE);
+//server.end();
+
+
+
+//  IPAddress local_ip_new(192, 168, 0, 10);
+//  ETH.config(local_ip_new, gateway, subnet, dns);
+
+//server.begin();
+
+
+}
+
+void startServer()
+{ 
+   server.begin();
+   
+  // Route for root / web page
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){  
+    request->send(SPIFFS, "/index.html", String(),false, processor);
+    });
+   
+  // Route to load style.css file
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/style.css", "text/css");
+    });
+  
+   server.on("/static", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/page_static.html");    
+    });
+    
+   server.on("/static2", HTTP_GET, [](AsyncWebServerRequest *request){
+    String local_ip;
+    char ipv4Arr[15];
+    
+     if (request->hasParam(PARAM_MESSAGE)) 
+        {
+            local_ip= request->getParam(PARAM_MESSAGE)->value();
+            Serial.println ("변경된 IP는");
+            Serial.println (local_ip);
+            
+            local_ip.toCharArray(ipv4Arr,sizeof(local_ip)+2); //값을 char 배열로 변환 
+            staticAPConfig(ipv4Arr);
+            //server.end();
+            Serial.printf ("변경완료");  
+            
+         } 
+          else 
+          {
+            local_ip = "No message sent";
+          }
+    
+       g_change_ip = true;
+       
+     //request->send(SPIFFS, "/page_static.html");    
+    });
+    
+
+    
+}
+
+void setup(){  
+  g_change_ip = false;
+  
+  // Serial port for debugging purposes
+  Serial.begin(115200);
+  
+  // Initialize SPIFFS
+  if(!SPIFFS.begin(true)){
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+
+ Serial.println("before WiFi.onEvent(WiFiEvent)"); 
+ WiFi.onEvent(WiFiEvent);
+ Serial.println("after WiFi.onEvent(WiFiEvent)"); 
+ 
+  ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE);
+  ETH.config(local_ip, gateway, subnet, dns);
+  
+  // Connect to Wi-Fi
+//  WiFi.softAP(ssid, password);
+
+//Serial.println();
+//Serial.print("IP address: ");
+//Serial.println(WiFi.softAPIP());
+
+startServer();
+
+}
+
+void loop(){
+  delay(1);
+  
+  if(g_change_ip==true)
+  {
+    g_change_ip = false;
+
+    server.end();
+
+    delay(500);
+    
+   // IPAddress local_ip_new(192, 168, 0, 10);
+  ETH.config(local_ip, gateway, subnet, dns);
+
+   //server.begin();
+    startServer();
+  }  
+}
