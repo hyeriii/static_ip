@@ -1,0 +1,2 @@
+<?php session_start(); //DB 정보 $db_hostname = " "; $db_user = " "; $db_password = " "; $db_name = " "; //mysql_connect: 서버에 접속하기 위해 필요 $db_conn=mysql_connect($db_hostname,$db_user,$db_password); //DB 선택해서 연동 mysql_select_db($db_name,$db_conn); //사용자가 입력한 ID와 비밀번호 받아오기 $id=$_POST['loginID']; $password=$_POST['loginPASSWORD']; //사용자가 입력한 ID 기준으로 DB에 입력되어있는 ID와 비밀번호 받아오기 $db_sql="SELECT * FROM MEMBERS WHERE id='$id'"; //print_r($db_sql); $result = mysql_query($db_sql); $row=mysql_fetch_array($result); //print_r($row); echo $row; //ID를 DB에서 확인하여 PASSWORD와 같은지 체크 ?>
+

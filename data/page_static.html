@@ -1,0 +1,94 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta content="text/html"
+          http-equiv="content-type">
+    <meta name="viewport" content="width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=0">
+    <meta charset="utf-8">
+    <title>ESP32 Azure Demo</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+    <script>
+        window.onload = function () {
+            const savedInfos = ['�������� �޾ƿ� info �迭']
+            const infos = document.getElementsByName('info')
+
+            savedInfos.forEach(function (saveInfo) {
+                infos.forEach(function (info) {
+                    if (info.value == saveInfo) info.checked = true
+                })
+            });
+        };
+
+        function handleClick(checked) {
+            const infos = document.getElementsByName('info')
+            infos.forEach(function (info, index) {
+                info.checked = checked != 'undefined' ? checked : false
+            });
+        }
+        function save() {
+            tranCall('/static', $('frm').serialize(), function (data) {
+                /*
+                    �ݹ��Լ� ����
+                    if (data != null) {
+                            if (data.resultVO.resultCode == "SUCCESS") {
+                                vo = data.vo;
+                            }else alert(data.resultVO.resultMessage);
+                      }
+                */
+            });
+        }
+        function tranCall(url, data, callback) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                async: false,
+                data: data,
+                dataType: "json",
+                success: callback
+            });
+        }
+
+    </script>
+</head>
+<body>
+    <center>
+        <h1>ESP32 Azure Demo</h1>
+        <h2>Configure Static IPv4 Settings</h2>
+        <FORM action="/static2" method="get">
+
+            <P>
+                <label style="font-family:Times New Roman">IPv4 Address</label><br>
+                <input maxlength="30px" type='text' name="ipv4static" placeholder='ip Address' style="width: 400px; padding: 5px 10px ; margin: 8px 0; border : 2px solid #3498db; border-radius: 4px; box-sizing:border-box" required;><br>
+
+
+            </P>
+
+            <P>
+                <label style="font-family:Times New Roman">Gateway</label><br>
+                <input maxlength="30px" type="text" name="gateway" placeholder="gateway address" style="width: 400px; padding: 5px 10px ; margin: 8px 0; border : 2px solid #3498db; border-radius: 4px; box-sizing:border-box" required;><br>
+
+            </P>
+
+            <P>
+                <label style="font-family:Times New Roman">Subnet Mask</label><br>
+                <input maxlength="30px" type="text" name="subnet" placeholder="subnet mask" style="width: 400px; padding: 5px 10px ; margin: 8px 0; border : 2px solid #3498db; border-radius: 4px; box-sizing:border-box" required;><br>
+            </P>
+
+            <input type="submit">
+
+            <INPUT type="reset">
+
+        </FORM>
+
+        <script type="text/javascript">
+
+            $(document).ready(function ()
+            {
+                $('#test').val('���ϴ� ��');
+            });
+
+        </script>
+
+    </center>
+</body>

@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1"
+http-equiv="content-type">
+<meta name = "viewport" content = "width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=0">
+<title>ESP32 Azure Demo</title>
+
+</head>
+<body>
+<center>
+<h1 >ESP32 Azure Demo</h1>
+<h2 >Configure WiFiServer Settings</h2><FORM  method="post">
+      
+<div id="radio_select">
+ <input type="radio" name="configure" value="dhcp" id="radio_dhcp"> DHCP Setting &nbsp &nbsp &nbsp
+ <input type="radio" name="configure" value="staticIP" id="radio_static"> Static IP Setting<br>
+</div>
+ 
+<style>
+</style>
+<br> <br>
+<INPUT type="submit"  onClick="return settingForm()"> 
+
+</FORM>
+<script type="text/javascript">
+
+function settingForm(){
+
+if(document.getElementById('radio_dhcp').checked){
+    rate_value = document.getElementById('radio_dhcp').value;
+	console.log(rate_value);
+	window.location.assign("/dhcp");
+}else if(document.getElementById('radio_static').checked){
+    rate_value = document.getElementById('radio_static').value;
+    window.location.assign("/static");
+}  
+return false;
+}
+</script>
+</center>
+</body>

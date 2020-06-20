@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <script>
+        window.onload = function () {
+            const savedInfos = ['서버에서 받아온 info 배열']
+            const infos = document.getElementsByName('info')
+
+            savedInfos.forEach(function (saveInfo) {
+                infos.forEach(function (info) {
+                    if (info.value == saveInfo) info.checked = true
+                })
+            });
+        };
+
+        function handleClick(checked) {
+            const infos = document.getElementsByName('info')
+            infos.forEach(function (info, index) {
+                info.checked = checked != 'undefined' ? checked : false
+            });
+        }
+        function save() {
+            tranCall('/option', $('frm').serialize(), function (data) {
+                /*
+                    콜백함수 정의
+                    if (data != null) {     
+	    	     		if (data.resultVO.resultCode == "SUCCESS") {
+	    	      			vo = data.vo; 
+	    	     		}else alert(data.resultVO.resultMessage);
+	    	     	}
+                */
+            });
+        }
+        function tranCall(url, data, callback) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                async: false,
+                data: data,
+                dataType: "json",
+                success: callback
+            });
+        }
+
+    </script>
+</head>
+<body>
+
+    <h1>Web Server</h1>
+
+    <form>
+        ID : <input id='userid' type='text' /><br>
+        비밀번호 : <input id='pwd' type='password' maxlength='5' /><br>
+
+        <div class="limiter">
+            <div class="container-login100" style="background-image: url('../images/1_login_back.png');">
+                <div class="wrap-login100 p-t-50 p-b-0">
+                    <form class="login100-form validate-form">
+                        <div class="login100-form-avatar">
+                            <!--<img src="~/images/1_login_back.png" alt="AVATAR">-->
+                        </div>
+                        <span class="login100-form-title p-t-20 p-b-45">
+
+                        </span>
+                        <div class="wrap-input100 validate-input m-b-10" data-validate="id is required">
+                            <input class="input100" type="text" name="id" id="id" placeholder="Id" onkeyup="enterkey();">
+                            <span class="focus-input100"></span>
+                            <span class="symbol-input100">
+                                <i class="fa fa-user"></i>
+                            </span>
+                        </div>
+                        <div class="wrap-input100 validate-input m-b-10" data-validate="Password is required">
+                            <input class="input100" type="password" name="password" id="password" placeholder="Password" onkeyup="enterkey();">
+                            <span class="focus-input100"></span>
+                            <span class="symbol-input100">
+                                <i class="fa fa-lock"></i>
+                            </span>
+                        </div>
+                        <div class="container-login100-form-btn p-t-10">
+                            <input id="loginBttn" type="button" value="Login" class="login100-form-btn" onclick="Validate()">
+                        </div>
+                        <div class="text-center w-full p-t-25 p-b-80">
+                            <a href="#" class="txt1">
+                                Forgot Username / Password?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </form>
+    <fieldset>
+        <legend>로그인 하세요!</legend>
+        <table>
+            <form action=login_check.php method="get">
+                <tr>
+                    <th>ID</th>
+                    <td><input type="text" name="loginID"></td>
+                </tr>
+                <tr>
+                    <th>PASSWORD</th>
+                    <td><input type="password" name="loingPASSWORD"></td>
+                </tr>
+                <input type="submit" value="로그인">
+                <input type="button" value="회원가입">
+            </form>
+        </table>
+    </fieldset>
+
+
+ 
+    <p>LED state: <strong> %STATE1%</strong></p>
+
+    <form>
+
+        <form id="frm">
+
+            <fieldset>
+
+                <legend>led</legend>
+
+                <label for="ALL">A</label><input type="checkbox" id="ALL" value="A" onclick="handleClick(this.checked)" /><br>
+                <label for="led1">led1</label><input type="checkbox" name="led1" id="info" value="B" /><br>
+                <label for="led2">led2</label><input type="checkbox" name="info" id="info" value="C" /><br>
+
+
+                <input type="button" value="확인" onclick="save()" />
+
+
+            </fieldset>
+
+        </form>
+
+        <p><a href="/LED"><button class="button">LED all</button></a></p>
+        <p><a href="/LEDOFF"><button class="button">LED OFF</button></a></p>
+
+
+        <FORM method="get">
+
+            <div id="radio_select">
+                <input type="radio" name="configure" value="dhcp" id="radio_dhcp"> DHCP Setting &nbsp &nbsp &nbsp
+                <input type="radio" name="configure" value="staticIP" id="radio_static"> Static IP Setting<br>
+            </div>
+
+
+            <br> <br>
+            <INPUT type="submit" onClick="return settingForm()">
+
+        </FORM>
+        <script type="text/javascript">
+
+            function settingForm() {
+
+                if (document.getElementById('radio_dhcp').checked) {
+                    rate_value = document.getElementById('radio_dhcp').value;
+                    console.log(rate_value);
+                    window.location.assign("/dhcp");
+                } else if (document.getElementById('radio_static').checked) {
+                    rate_value = document.getElementById('radio_static').value;
+                    window.location.assign("/static");
+                }
+                return false;
+            }
+        </script>
+</body>
+
+</html>
